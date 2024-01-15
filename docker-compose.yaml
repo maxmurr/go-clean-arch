@@ -1,0 +1,18 @@
+# docker-compose.yaml
+version: '3.9'
+
+services:
+  db:
+    container_name: postgres-db
+    image: postgres:13
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=0509b30e17d6e198ed61
+      - POSTGRES_DB=go-clean-arch
+    ports:
+      - 5432:5432
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata: {}
