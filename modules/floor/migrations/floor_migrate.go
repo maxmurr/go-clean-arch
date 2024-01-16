@@ -2,15 +2,14 @@ package main
 
 import (
 	"github.com/maxmurr/go-clean-arch/config"
-	database "github.com/maxmurr/go-clean-arch/internal/database"
-	postgres "github.com/maxmurr/go-clean-arch/internal/database/postgres"
+	"github.com/maxmurr/go-clean-arch/internal/database"
 	"github.com/maxmurr/go-clean-arch/modules/floor/entities"
 )
 
 func main() {
 	cfg := config.GetConfig()
 
-	db := postgres.NewPostgresDatabase(&cfg)
+	db := database.NewPostgresDatabase(&cfg)
 
 	FloorMigrate(db)
 }

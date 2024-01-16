@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/maxmurr/go-clean-arch/config"
-	"github.com/maxmurr/go-clean-arch/internal/database"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -13,7 +12,7 @@ type PostgresDatabase struct {
 	db *gorm.DB
 }
 
-func NewPostgresDatabase(cfg *config.Config) database.Database {
+func NewPostgresDatabase(cfg *config.Config) Database {
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%d",
 		cfg.Db.Host,

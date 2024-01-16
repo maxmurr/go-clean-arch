@@ -7,7 +7,6 @@ import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"github.com/maxmurr/go-clean-arch/config"
-	"github.com/maxmurr/go-clean-arch/internal/server"
 
 	floorHttpHandlers "github.com/maxmurr/go-clean-arch/modules/floor/handlers"
 	floorRepositories "github.com/maxmurr/go-clean-arch/modules/floor/repositories"
@@ -21,7 +20,7 @@ type EchoServer struct {
 	cfg *config.Config
 }
 
-func NewEchoServer(cfg *config.Config, db *gorm.DB) server.Server {
+func NewEchoServer(cfg *config.Config, db *gorm.DB) Server {
 	return &EchoServer{
 		app: echo.New(),
 		db:  db,
