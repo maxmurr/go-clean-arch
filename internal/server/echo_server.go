@@ -1,7 +1,12 @@
 package server
 
 import (
+	"context"
 	"fmt"
+	"net/http"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"github.com/go-playground/validator/v10"
 	"github.com/labstack/echo/v4"
@@ -13,6 +18,8 @@ import (
 	floorUsecases "github.com/maxmurr/go-clean-arch/modules/floor/usecases"
 	"gorm.io/gorm"
 )
+
+const TIMEOUT = 30 * time.Second
 
 type EchoServer struct {
 	app *echo.Echo
@@ -28,21 +35,50 @@ func NewEchoServer(cfg *config.Config, db *gorm.DB) Server {
 	}
 }
 
-func (s *EchoServer) Start() {
+func (s *EchoServer) Start() error {
 	validate := validator.New()
-
 	s.InitializeFloorHandler(validate)
+	s.app.Use(middleware.Logger())
 
 	router := s.app.Group("/api/v1")
 	router.GET("", func(ctx echo.Context) error {
 		return ctx.String(200, "Hello World")
 	})
 
-	s.app.Use(middleware.Logger())
-
+	ctx, stop := signal.NotifyContext(
+		context.Background(),
+		syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT,
+	)
+	defer stop()
+	errShutdown := make(chan error, 1)
+	go s.Shutdown(ctx, errShutdown)
 	serverUrl := fmt.Sprintf(":%d", s.cfg.App.Port)
-	s.app.Logger.Fatal(s.app.Start(serverUrl))
+	err := s.app.Start(serverUrl)
+	if err != nil && err != http.ErrServerClosed {
+		return err
+	}
+	err = <-errShutdown
+	if err != nil {
+		return err
+	}
+	return nil
+}
 
+func (s *EchoServer) Shutdown(ctx context.Context, errShutdown chan error) {
+	<-ctx.Done()
+
+	ctxTimeout, stop := context.WithTimeout(context.Background(), TIMEOUT)
+	defer stop()
+
+	err := s.app.Shutdown(ctxTimeout)
+	switch err {
+	case nil:
+		errShutdown <- nil
+	case context.DeadlineExceeded:
+		errShutdown <- nil
+	default:
+		errShutdown <- err
+	}
 }
 
 func (s *EchoServer) InitializeFloorHandler(validator *validator.Validate) {

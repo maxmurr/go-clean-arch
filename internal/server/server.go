@@ -1,5 +1,8 @@
 package server
 
+import "context"
+
 type Server interface {
-	Start()
+	Start() error
+	Shutdown(ctx context.Context, errShutdown chan error)
 }
